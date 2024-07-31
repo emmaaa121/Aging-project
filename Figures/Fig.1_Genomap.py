@@ -80,7 +80,7 @@ for organ in tissues:
                 ax.axis('off')  
                 plt.savefig(output_filename, dpi=600, bbox_inches='tight', pad_inches=0)
                 plt.close(fig) 
-
+            del cell_group_adata
             gc.collect() 
 
 
