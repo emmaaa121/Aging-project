@@ -133,11 +133,6 @@ for cell_type in cell_types:
       for attr in attributes:
           plot_visualization_generic(adata_filtered.obsm['X-genovis'], adata_filtered.obs[attr], colormap[attr],
                                      'genoVis1', 'genoVis2', f'by {attr}', f'{cell_type}_in_{tissue}_by_{attr}_genoVis_bbknn.png')
-      
-
-      
-      attributes = ['age_group', 'cluster']
-      for attr in attributes:
           plot_visualization_generic(adata_filtered.obsm['X_trajectory'], adata_filtered.obs[attr], colormap[attr],
                  '#genoTraj1', 'genoTraj2', f'{cell_type}_{tissue} by {attr}', f'{cell_type}_in_{tissue}_by_{attr}_genoTraj_bbknn.png')
 
