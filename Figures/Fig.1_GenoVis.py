@@ -18,8 +18,6 @@ print(sys.path)
 
 import colorDict
 
-
-# Load an h5ad file
 adata = sc.read_h5ad('C:/Users/emma_/OneDrive/Desktop/Aging/tabula-muris-senis-bbknn-processed-official-annotations.h5ad')
 
 # sc.pp.normalize_per_cell(adata, counts_per_cell_after=1e4)
@@ -30,7 +28,6 @@ adata = sc.read_h5ad('C:/Users/emma_/OneDrive/Desktop/Aging/tabula-muris-senis-b
 # sc.pp.scale(adata, max_value=10, zero_center=False)
 # # Compute neighbors
 # sc.tl.pca(adata, n_comps=121)
-# Map ages to age groups
 map_age_to_group = {
             "1m": "1m, 3m",
             "3m": "1m, 3m",
@@ -40,8 +37,6 @@ map_age_to_group = {
             "30m": "24m, 30m"
         }
 adata.obs['age_group'] = adata.obs['age'].map(map_age_to_group)
-
-# Color dictionaries for plotting
 agegroup_color_dict = colorDict.agegroup_color_dict()
 #cluster_color_dict = colorDict.cluster_color_dict()
 
@@ -79,13 +74,10 @@ def plot_visualization_generic(embedding, categories, color_map, xlabel, ylabel,
         leg.get_frame().set_facecolor('none')
         
     plt.tight_layout()
-    # Save the plot in the specified directory with the provided file name
     save_path = r'C:/Users/emma_/OneDrive/Desktop/Aging/Figure_1_cluster_traj//' + file_name
     plt.savefig(save_path, dpi=600)
     plt.show()
-
-
-# Process each cell type for visualization
+            
 cell_types = ['naive T cell','T cell', 'B cell','basophil','CD8-positive, alpha-beta T cell','mature NK T cell','CD4-positive, alpha-beta T cell','regulatory T cell','immature NKT cell',
               'immature T cell','double negative T cell','mature alpha-beta T cell','DN3 thymocyte','DN4 thymocyte','precursor B cell','late pro-B cell','immature B cell',
               'naive B cell','pancreatic B cell','early pro-B cell','plasma cell','macrophage','alveolar macrophage','lung macrophage','kupffer cell','leukogyte'
@@ -102,23 +94,22 @@ for cell_type in cell_types:
   for tissue in tissues:
     try:
       print(f'Processing {cell_type}s in {tissue}...')
-      adata_filtered = adata[(adata.obs['cell_ontology_class'] == cell_type) & (adata.obs['tissue'] == tissue)]
+      adata_filtered = adata[(adata.obs['cell_ontology_class'] == cell_type) & (adata.obs['tissue'] == tissue)].copy()
 
       # Perform genoVis on the PCA results
       pca_results = adata_filtered.obsm['X_pca']
       resVis = gpv.genoVis(pca_results, n_clusters=5, colNum=32, rowNum=32)
-      adata_filtered.obs['cluster'] = resVis[1]  # Assign to adata_filtered
+      adata_filtered.obs['cluster'] = resVis[1]  
       adata_filtered.obsm['X-genovis'] = resVis[0]
-      
+
+      # Perform genoTraj on the raw data
       data = adata_filtered.X.toarray()
-      trajectory_coordinates = gpt.genoTraj(data) # Using GenoTraj
+      trajectory_coordinates = gpt.genoTraj(data) 
       adata_filtered.obsm['X_trajectory'] = trajectory_coordinates
       
-            # Save the result
       file_path = f'C:/Users/emma_/OneDrive/Desktop/Aging/{cell_type}_in_{tissue}_genoVis3cluster_bbknn.h5ad'
       sc.write(file_path, adata_filtered)
       
-      # Creating a color map for 'X-genovis' using tab20 colormap
       unique_clusters = adata_filtered.obs['cluster'].unique().tolist()
       cluster_color_dict = {cluster: color for cluster, color in zip(unique_clusters, plt.cm.jet(np.linspace(0, 1, len(unique_clusters))))}
 
@@ -136,9 +127,8 @@ for cell_type in cell_types:
           plot_visualization_generic(adata_filtered.obsm['X_trajectory'], adata_filtered.obs[attr], colormap[attr],
                  '#genoTraj1', 'genoTraj2', f'{cell_type}_{tissue} by {attr}', f'{cell_type}_in_{tissue}_by_{attr}_genoTraj_bbknn.png')
 
-      # Cleanup
       del adata_filtered
-      gc.collect()  # Explicitly run the garbage collector
+      gc.collect() 
 
     except Exception as e:
         print(f"Error processing {cell_type} in {tissue}: {e}")
