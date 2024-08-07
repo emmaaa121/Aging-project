@@ -11,7 +11,7 @@ def get_gene_expression_data(adata, tissue, gene, age_groups):
     tissue_data = adata[adata.obs['tissue'] == tissue, :]
     tissue_age_data = tissue_data[tissue_data.obs['age'].isin(age_groups)]
     
-    #Handle the tissue that doesn't have cells in particular age
+    # Handle the tissue that doesn't have cells in particular age
     if tissue_age_data.shape[0] == 0:
         print(f"No data available for age groups {age_groups} in tissue '{tissue}'")
         return None
