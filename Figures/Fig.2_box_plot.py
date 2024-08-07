@@ -9,25 +9,22 @@ import scanpy as sc
 
 def get_gene_expression_data(adata, tissue, gene, age_groups):
     tissue_data = adata[adata.obs['tissue'] == tissue, :]
-    # Filter the data to include only the specified age groups
     tissue_age_data = tissue_data[tissue_data.obs['age'].isin(age_groups)]
+    
+    #Handle the tissue that doesn't have cells in particular age
+    if tissue_age_data.shape[0] == 0:
+        print(f"No data available for age groups {age_groups} in tissue '{tissue}'")
+        return None
+    # Handle the case where the gene doesn't exist in this tissue
     try:
         gene_expression = tissue_age_data[:, gene].X.toarray().flatten()
     except KeyError:
-        # Handle the case where the gene doesn't exist in this tissue
         print(f"Gene '{gene}' does not exist in tissue '{tissue}'")
-        return None
-    
-    # Filter the data to include only the specified age groups
-    #tissue_age_data = tissue_data[tissue_data.obs['age'].isin(age_groups)]
-    
-    if tissue_age_data.shape[0] == 0:
-        print(f"No data available for age groups {age_groups} in tissue '{tissue}'")
         return None
     
     log2_expression = np.log2(gene_expression + 1)
     return pd.DataFrame({
-        'Age': tissue_age_data.obs['age'],  # Use tissue_age_data.obs['age'] for the selected age groups
+        'Age': tissue_age_data.obs['age'],  
         'log2_Expression': log2_expression
     })
 
@@ -36,7 +33,6 @@ def generate_boxplot(plot_data, gene, tissue, age_groups, color_palette, output_
     plt.figure(figsize=(10, 8))
     plt.rcParams['font.size'] = 38
     sns.set_style("white")
-    # Create the boxplot
     sns.boxplot(x='Age', y='log2_Expression', data=plot_data, order=age_groups, palette=color_palette)
     # Add stripplot on top of the boxplot with jitter
     sns.stripplot(x='Age', y='log2_Expression', data=plot_data, order=age_groups, color='black', size=4, jitter=True)
@@ -58,7 +54,6 @@ def perform_statistical_comparison(plot_data, age_groups, gene, tissue, output_d
         group1_data = plot_data[plot_data['Age'] == group1]['log2_Expression']
         group2_data = plot_data[plot_data['Age'] == group2]['log2_Expression']
         
-        # Check if the arrays are non-empty before performing the test
         if len(group1_data) > 0 and len(group2_data) > 0:
             stat, p = stats.mannwhitneyu(group1_data, group2_data)
             comparison_results.append({'Group1': group1, 'Group2': group2, 'P-value': p})
@@ -74,18 +69,10 @@ def perform_statistical_comparison(plot_data, age_groups, gene, tissue, output_d
         csv_file_path = f"{output_directory}/Pvalue_boxplot_{gene}_{tissue}.csv"
         results_df.to_csv(csv_file_path, index=False)
 
-def draw_and_save_boxplots(adata, genes, tissues, age_groups, color_palette, output_directory):
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
-    
-    for tissue in tissues:
-        for gene in genes:
-            plot_data = get_gene_expression_data(adata, tissue, gene, age_groups)
-            generate_boxplot(plot_data, gene, tissue, age_groups, color_palette, output_directory)
-            perform_statistical_comparison(plot_data, age_groups, gene, tissue, output_directory)
 
-# Usage
 output_directory = 'C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp'
+if not os.path.exists(output_directory):
+    os.makedirs(output_directory)
 age_groups = ['3m', '18m', '21m', '24m', '30m']
 color_palette = ["#4E79A7", "#59A14F", "#9C755F", "#B07AA1"]
 Genes = ['Beta-s', 'Xist', 'Lars2', 'Mgp', 'Rpl13a',
