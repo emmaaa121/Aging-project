@@ -10,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
-import genomap as gp
+import genomap as gp  
 import scanpy as sc
 import gc  # Import garbage collector
 
