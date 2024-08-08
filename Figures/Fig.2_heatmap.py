@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 25 10:54:42 2024
-
-@author: emma_
-"""
-
 import scanpy as sc
 import pandas as pd
 import numpy as np
