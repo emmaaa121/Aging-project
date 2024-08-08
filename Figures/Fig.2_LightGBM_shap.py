@@ -69,3 +69,15 @@ print("Best Metrics:", avg_metrics)
 
 explainer = shap.TreeExplainer(lgb_model)
 shap_values = explainer.shap_values(data_selected) 
+
+fig1, ax1 = plt.subplots(figsize=(10, 8))
+shap.summary_plot(shap_values, data_selected, feature_names=adata_selected.var_names, plot_type='bar')
+plt.tight_layout()
+fig1.savefig('C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp/global_feature_importance.png', dpi=300)  # Save the figure
+plt.close(fig1)  # Close the figure to free memory
+
+fig2, ax2 = plt.subplots(figsize=(10, 8))
+shap.summary_plot(shap_values, data_selected, feature_names=adata_selected.var_names, plot_type='dot')
+plt.tight_layout()
+fig2.savefig('C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp/local_explanation_summary.png', dpi=300)  # Save the figure
+plt.close(fig2)  # Close the figure to free memory
