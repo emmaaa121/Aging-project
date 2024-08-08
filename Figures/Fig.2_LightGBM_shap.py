@@ -67,17 +67,17 @@ avg_metrics = lightGBM_regression(data_selected , ages_selected, params, n_split
 print("Results saved to", output)
 print("Best Metrics:", avg_metrics)
 
-explainer = shap.TreeExplainer(lgb_model)
-shap_values = explainer.shap_values(data_selected) 
+# Train a new model on the entire dataset for SHAP analysis
+lgb_model_full = LGBMRegressor(**params, random_state=42)
+lgb_model_full.fit(data_selected, ages_selected)
+explainer = shap.TreeExplainer(lgb_model_full)
+shap_values = explainer.shap_values(data_selected)
 
 fig1, ax1 = plt.subplots(figsize=(10, 8))
 shap.summary_plot(shap_values, data_selected, feature_names=adata_selected.var_names, plot_type='bar')
-plt.tight_layout()
-fig1.savefig('C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp/global_feature_importance.png', dpi=300)  # Save the figure
-plt.close(fig1)  # Close the figure to free memory
+fig1.savefig('C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp/global_feature_importance.png', dpi=300)  
 
 fig2, ax2 = plt.subplots(figsize=(10, 8))
 shap.summary_plot(shap_values, data_selected, feature_names=adata_selected.var_names, plot_type='dot')
-plt.tight_layout()
-fig2.savefig('C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp/local_explanation_summary.png', dpi=300)  # Save the figure
-plt.close(fig2)  # Close the figure to free memory
+fig2.savefig('C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp/local_explanation_summary.png', dpi=300)  
+
