@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Dec 12 15:27:07 2023
-
-@author: emma_
-"""
-
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
@@ -83,10 +76,9 @@ n_iter_search = 20
 # Load .h5ad file
 adata = sc.read_h5ad('/home/emma/data/specific_combinations_all_genes_raw.h5ad')
 
-sc.pp.filter_genes_dispersion(adata, subset=False, min_disp=.5, max_disp=None, min_mean=.0125, max_mean=10, n_bins=20, n_top_genes=None, log=True, copy=True)
 sc.pp.normalize_per_cell(adata, counts_per_cell_after=1e4)
+sc.pp.filter_genes_dispersion(adata, subset=False, min_disp=.5, max_disp=None, min_mean=.0125, max_mean=10, n_bins=20, n_top_genes=None, log=True, copy=True)
 sc.pp.log1p(adata)
-sc.pp.highly_variable_genes(adata, n_top_genes=3000)
 sc.pp.scale(adata, max_value=10, zero_center=False)
 
 # Extract gene expression data and ages
