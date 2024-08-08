@@ -1,33 +1,18 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jan 29 15:13:58 2024
-
-@author: emma_
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 11 11:57:49 2024
-
-@author: emma_
-"""
-
 import scanpy as sc
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error, r2_score
-from lightgbm import LGBMRegressor #not lightGBMRegressor
+from lightgbm import LGBMRegressor 
 import gc
 
-def lightGBM_regression(data, ages, params, n_splits=5, output='metrics.csv'): #forgot colon and comma between each argument
+def lightGBM_regression(data, ages, params, n_splits=5, output='metrics.csv'):
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
     metrics = {'mse':[], 'rmse':[], 'mae':[], 'mape':[], 'r2':[]}
     for train_index, test_index in kf.split(data):
         X_train, X_test = data[train_index], data[test_index]
         y_train, y_test = ages[train_index], ages[test_index]
-
-        print("Current params:", params)  # Debugging line
+        
         lgb_model = LGBMRegressor(**params, random_state=42)
         lgb_model.fit(X_train, y_train)
         predictions = lgb_model.predict(X_test)
@@ -52,25 +37,22 @@ def lightGBM_regression(data, ages, params, n_splits=5, output='metrics.csv'): #
     return avg_metrics
 
 
-adata = sc.read_h5ad('C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp/specific_combinations_all_genes_raw_02.h5ad')
+adata = sc.read_h5ad('C:/Users/emma_/OneDrive/Desktop/Aging/Figure_3_differential_exp/specific_combinations_all_genes_raw.h5ad')
 
+sc.pp.normalize_total(adata, target_sum=1e4)
 sc.pp.filter_genes_dispersion(adata, subset=False, min_disp=0.5, max_disp=None,
                               min_mean=0.025, max_mean=10, n_bins=20, n_top_genes=None, copy=False, log=True)
-sc.pp.normalize_total(adata, target_sum=1e4)
 sc.pp.log1p(adata)
-sc.pp.highly_variable_genes(adata, n_top_genes=3000)
 sc.pp.scale(adata, max_value=10, zero_center=False)
 
-adata.obs['age'] = adata.obs['age'].apply(lambda x:int(x.replace('m','')))
-selected_age_groups = [1, 3, 18, 21, 24, 30]
-mask = adata.obs['age'].isin(selected_age_groups) # Create a boolean mask
-data = adata.X.toarray()
-data_selected = data[mask]
+data = adata.X.toarray() if not isinstance(adata.X, np.ndarray) else adata.X
+adata.obs['age'] = adata.obs['age'].apply(lambda x: int(x.replace('m','')))
 ages = adata.obs['age'].to_numpy()
+selected_ages = [3, 18, 21, 24, 30] #integers, not strings
+mask = adata.obs['age'].isin(selected_ages)
+adata_selected = adata[mask]
+data_selected = data[mask]
 ages_selected = ages[mask]
-
-# Index into the data array using the boolean mask
-
 
 params = {
     'colsample_bytree': 0.6999304858576277,
@@ -80,8 +62,10 @@ params = {
     'num_leaves': 70,
     'subsample': 0.6912309956335814}
 
-output = "C:/Users/emma_/OneDrive/Desktop/Aging/Figure_4_specific combinations/result/lightgbm_regressor_metrics_3to30m_raw_02.csv"
+output = "C:/Users/emma_/OneDrive/Desktop/Aging/Figure_4_specific combinations/result/lightgbm_regressor_metrics_3to30m.csv"
 avg_metrics = lightGBM_regression(data_selected , ages_selected, params, n_splits=5, output='metrics.csv')
-
 print("Results saved to", output)
 print("Best Metrics:", avg_metrics)
+
+explainer = shap.TreeExplainer(lgb_model)
+shap_values = explainer.shap_values(data_selected) 
