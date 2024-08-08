@@ -14,14 +14,10 @@ import os
 
 os.environ['XLA_FLAGS'] = '--xla_gpu_cuda_data_dir=/usr/lib/cuda'
 
-# Define the path for the output file
 output_path = '/home/emma/result/oracle/'
 os.makedirs(output_path, exist_ok=True)
 
-# Load data
-adata = sc.read_h5ad('/home/emma/data/10X_P7_2_3_marrow_bbknn_annotated_final.h5ad')
-
-# Plotting cell types
+adata = sc.read_h5ad('/home/emma/data/10X_P7_2_3_marrow_bbknn_annotated.h5ad')
 cell_types = adata.obs['cell_type'].unique().tolist()
 for cell_type in cell_types:
     indices = np.where(adata.obs['cell_type'] == cell_type)[0]
@@ -40,8 +36,7 @@ lineage_dict = {'the_one': cell_types}
 pt.set_lineage(lineage_dictionary=lineage_dict)
 #pt.plot_lineages()
 
-# Calculate differential map and pseudotime
-# Find the maximum y-coordinate value (top boundary)
+# Set root cell and calculate pseudotime
 x_coords = adata.obsm['X_umap'][:, 0]
 y_coords = adata.obsm['X_umap'][:, 1]
 max_y = np.max(y_coords)
@@ -119,18 +114,13 @@ plt.show()
 # Define parameters for the grid used in simulation and gradient calculations
 n_grid = 40
 oracle.calculate_p_mass(smooth=0.8, n_grid=n_grid, n_neighbors=200)
-
-# Search for the best minimum mass for filtering
 oracle.suggest_mass_thresholds(n_suggestion=12)
-
-# Apply the minimum mass filter
 min_mass = 100
 oracle.calculate_mass_filter(min_mass=min_mass, plot=True)
 
 # Create quiver plots to visualize simulated and randomized simulation vectors
 fig, ax = plt.subplots(1, 2, figsize=[13, 6])
 scale_simulation = 30
-# Quiver plot for simulated data
 oracle.plot_simulation_flow_on_grid(scale=scale_simulation, ax=ax[0])
 ax[0].set_title("Simulated cell identity shift vector: {goi} KO")
 
@@ -165,8 +155,6 @@ gradient.plot_dev_flow_on_grid(scale=scale_dev, ax=ax)
 dev = Oracle_development_module()
 dev.load_differentiation_reference_data(gradient_object=gradient)
 dev.load_perturb_simulation_data(oracle_object=oracle)
-
-# Calculate and visualize inner product scores
 dev.calculate_inner_product()
 dev.calculate_digitized_ip(n_bins=10)
 
