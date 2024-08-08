@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Oct 25 08:10:35 2023
-
-@author: emma_
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 import scanpy as sc
