@@ -1,7 +1,7 @@
 import scanpy as sc
 import scvelo as scv
 import numpy as np
-import pandas as pd  # Import pandas for data frame operations
+import pandas as pd 
 import matplotlib.pyplot as plt
 import genomap.genoTraj as gp
 import tensorflow as tf 
@@ -30,8 +30,6 @@ dyn.vf.VectorField(adata, basis='pca')
 dyn.vf.VectorField(adata, basis='genovis')
 print(adata)
 
-#dyn.pl.streamline_plot(adata, color=["clusters"], basis="umap", show_legend="on data", 
-											#show_arrowed_spines=True, save_show_or_return='save', save_kwargs={"dpi":300})
 gene = ['Map2k7', 'Map2k4', 'Map3k1', 'Ets1']
 expr_vals = [100, 100, -100,-100]
 #dyn.pd.perturbation(adata, gene, [-100], emb_basis="genotraj_wPCA")
